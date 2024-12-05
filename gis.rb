@@ -14,57 +14,49 @@ class Track
     @segments = segment_objects
   end
 
+
   def get_track_json()
-    if @name != nil
-    name = '"properties": {"title":  "' + @name + '"},'
+    coordinates_input = []
+    @segments.each do |segment| 
+      coordinates_input_sub = []
+      segment.coordinates.each do |coordinate| 
+        current_array = [coordinate.longitude, coordinate.latitude] 
+        current_array << coordinate.elevation if coordinate.elevation 
+        coordinates_input_sub << current_array
+      end
+      coordinates_input << coordinates_input_sub
     end
 
-    json = '{"type": "Feature",' + name + '"geometry": {"type": "MultiLineString","coordinates": ['
-    # Loop through all the segment objects
-    @segments.each_with_index do |segment, index|
-      if index > 0
-        json += ","
-      end
-      json += '['
-      # Loop through all the coordinates in the segment
-      temporary_string_json = ''
-      segment.coordinates.each do |coordinate|
-        if temporary_string_json != ''
-          temporary_string_json += ','
-        end
-        # Add the coordinate
-        temporary_string_json += '[' + "#{coordinate.longitude},#{coordinate.latitiude}"
-        if coordinate.elevation != nil
-          temporary_string_json += ",#{coordinate.elevation}"
-        end
-        temporary_string_json += ']'
-      end
-      json+=temporary_string_json
-      json+=']'
-    end
-    json + ']}}'
+
+
+
+    track_json = {
+      type: 'Feature',
+      title: @name,
+      geometry: {
+        type: 'MultiLineString',
+        coordinates: coordinates_input
+      }
+    }
+    JSON.generate(track_json)
   end
 end
-
-
-
-
-
   
 class TrackSegment
   attr_reader :coordinates
   def initialize(coordinates)
     @coordinates = coordinates
   end
+
 end
 
 class Point
 
-  attr_reader :latitiude, :longitude, :elevation
+  attr_reader :latitude, :longitude, :elevation
 
-  def initialize(longitude, latitiude, elevation=nil)
+  def initialize(longitude, latitude, elevation=nil)
     @longitude = longitude
-    @latitiude = latitiude
+    @latitude = latitude
     @elevation = elevation
   end
 end
@@ -75,10 +67,10 @@ end
 
 class Waypoint
 
-attr_reader :latitiude, :longitude, :elevation, :name, :type
+attr_reader :latitude, :longitude, :elevation, :name, :type
 
-  def initialize(longitude, latitiude, elevation=nil, name=nil, type=nil)
-    @latitiude = latitiude
+  def initialize(longitude, latitude, elevation=nil, name=nil, type=nil)
+    @latitude = latitude
     @longitude = longitude
     @elevation = elevation
     @name = name
@@ -86,7 +78,14 @@ attr_reader :latitiude, :longitude, :elevation, :name, :type
   end
 
   def get_waypoint_json(indent=0)
-    json = '{"type": "Feature","geometry": {"type": "Point","coordinates": ' + "[#{@longitude},#{@latitiude}"
+    json = {
+      type: Feature,
+      geometry: {
+        type: Point,
+        coordinates: @longitude, @latitude}
+
+
+        
     if elevation != nil
       json += ",#{@elevation}"
     end
