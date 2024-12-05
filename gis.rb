@@ -32,7 +32,9 @@ class Track
 
     track_json = {
       type: 'Feature',
-      title: @name,
+      properties: {
+      title: @name
+      },
       geometry: {
         type: 'MultiLineString',
         coordinates: coordinates_input
@@ -94,7 +96,7 @@ attr_reader :latitude, :longitude, :elevation, :name, :type
     }
     json[:properties][:title] = @name if @name
     json[:properties][:icon] = @type if @type
-    JSON.generate(json, indent: indent)
+    JSON.pretty_generate(json, indent: ' ' * indent)
   end
 
 end
@@ -108,21 +110,28 @@ end
     @features.append(feature)
   end
 
-  def to_geojson(indent=0)#ruby can do json
-    # Write stuff
-    json = '{"type": "FeatureCollection","features": ['
+  def to_geojson(indent=0)
+    feature_get_json = []
+    current_array = []
     @features.each_with_index do |feature,i|
       if i != 0
-        json +=","
+        current_array = []
       end
-        if feature.class == Track #did in exersion 9
-            json += feature.get_track_json
-        elsif feature.class == Waypoint
-            json += feature.get_waypoint_json
-      end
+      current_array = feature.is_a?(Track) ? JSON.parse(feature.get_track_json) : JSON.parse(feature.get_waypoint_json(indent))
+      feature_get_json << current_array
     end
-    json + "]}"
+
+
+    json = {
+      type: "FeatureCollection",
+    features: feature_get_json
+  }
+  JSON.generate(json, indent: ' ' * indent)
+    
   end
+
+
+
 end
 
 def main()
