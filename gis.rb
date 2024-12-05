@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+require 'json'
 
 class Track
   def initialize(segments, name=nil)
@@ -12,42 +13,42 @@ class Track
   end
 
   def get_track_json()
-    j = '{'
-    j += '"type": "Feature", '
     if @name != nil
-      j+= '"properties": {'
-      j += '"title": "' + @name + '"'
-      j += '},'
+    name = '"properties": {"title":  "' + @name + '"},'
     end
-    j += '"geometry": {'
-    j += '"type": "MultiLineString",'
-    j +='"coordinates": ['
+
+    json = '{"type": "Feature",' + name + '"geometry": {"type": "MultiLineString","coordinates": ['
     # Loop through all the segment objects
     @segments.each_with_index do |s, index|
       if index > 0
-        j += ","
+        json += ","
       end
-      j += '['
+      json += '['
       # Loop through all the coordinates in the segment
-      tsj = ''
+      temporary_string_json = ''
       s.coordinates.each do |c|
-        if tsj != ''
-          tsj += ','
+        if temporary_string_json != ''
+          temporary_string_json += ','
         end
         # Add the coordinate
-        tsj += '['
-        tsj += "#{c.lon},#{c.lat}"
-        if c.ele != nil
-          tsj += ",#{c.ele}"
+        temporary_string_json += '[' + "#{c.longitude},#{c.latitiude}"
+        if c.elevation != nil
+          temporary_string_json += ",#{c.elevation}"
         end
-        tsj += ']'
+        temporary_string_json += ']'
       end
-      j+=tsj
-      j+=']'
+      json+=temporary_string_json
+      json+=']'
     end
-    j + ']}}'
+    json + ']}}'
   end
 end
+
+
+
+
+
+  
 class TrackSegment
   attr_reader :coordinates
   def initialize(coordinates)
@@ -57,54 +58,55 @@ end
 
 class Point
 
-  attr_reader :lat, :lon, :ele
+  attr_reader :latitiude, :longitude, :elevation
 
-  def initialize(lon, lat, ele=nil)
-    @lon = lon
-    @lat = lat
-    @ele = ele
+  def initialize(longitude, latitiude, elevation=nil)
+    @longitude = longitude
+    @latitiude = latitiude
+    @elevation = elevation
   end
 end
 
+
+
+
+
 class Waypoint
 
+attr_reader :latitiude, :longitude, :elevation, :name, :type
 
-
-attr_reader :lat, :lon, :ele, :name, :type
-
-  def initialize(lon, lat, ele=nil, name=nil, type=nil)
-    @lat = lat
-    @lon = lon
-    @ele = ele
+  def initialize(longitude, latitiude, elevation=nil, name=nil, type=nil)
+    @latitiude = latitiude
+    @longitude = longitude
+    @elevation = elevation
     @name = name
     @type = type
   end
 
   def get_waypoint_json(indent=0)
-    j = '{"type": "Feature",'
-    # if name is not nil or type is not nil
-    j += '"geometry": {"type": "Point","coordinates": '
-    j += "[#{@lon},#{@lat}"
-    if ele != nil
-      j += ",#{@ele}"
+    json = '{"type": "Feature","geometry": {"type": "Point","coordinates": ' + "[#{@longitude},#{@latitiude}"
+    if elevation != nil
+      json += ",#{@elevation}"
     end
-    j += ']},'
+    json += ']},'
     if name != nil or type != nil
-      j += '"properties": {'
+      json += '"properties": {'
       if name != nil
-        j += '"title": "' + @name + '"'
+        json += '"title": "' + @name + '"'
       end
       if type != nil  # if type is not nil
         if name != nil
-          j += ','
+          json += ','
         end
-        j += '"icon": "' + @type + '"'  # type is the icon
+        json += '"icon": "' + @type + '"'  # type is the icon
       end
-      j += '}'
+      json += '}'
     end
-    j += "}"
-    return j
+    json += "}"
+    return json
   end
+
+
 end
 
 class World
@@ -113,17 +115,17 @@ def initialize(name, things)
   @features = things
 end
   def add_feature(f)
-    @features.append(t)
+    @features.append(f)
   end
 
-  def to_geojson(indent=0)
+  def to_geojson(indent=0)#ruby can do json
     # Write stuff
     s = '{"type": "FeatureCollection","features": ['
     @features.each_with_index do |f,i|
       if i != 0
         s +=","
       end
-        if f.class == Track
+        if f.class == Track #did in exersion 9
             s += f.get_track_json
         elsif f.class == Waypoint
             s += f.get_waypoint_json
