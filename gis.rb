@@ -1,12 +1,14 @@
 #!/usr/bin/env ruby
 require 'json'
 
+
+
 class Track
   def initialize(segments, name=nil)
     @name = name
     segment_objects = []
-    segments.each do |s|
-      segment_objects.append(TrackSegment.new(s))
+    segments.each do |segment|
+      segment_objects.append(TrackSegment.new(segment))
     end
     # set segments to segment_objects
     @segments = segment_objects
@@ -19,21 +21,21 @@ class Track
 
     json = '{"type": "Feature",' + name + '"geometry": {"type": "MultiLineString","coordinates": ['
     # Loop through all the segment objects
-    @segments.each_with_index do |s, index|
+    @segments.each_with_index do |segment, index|
       if index > 0
         json += ","
       end
       json += '['
       # Loop through all the coordinates in the segment
       temporary_string_json = ''
-      s.coordinates.each do |c|
+      segment.coordinates.each do |coordinate|
         if temporary_string_json != ''
           temporary_string_json += ','
         end
         # Add the coordinate
-        temporary_string_json += '[' + "#{c.longitude},#{c.latitiude}"
-        if c.elevation != nil
-          temporary_string_json += ",#{c.elevation}"
+        temporary_string_json += '[' + "#{coordinate.longitude},#{coordinate.latitiude}"
+        if coordinate.elevation != nil
+          temporary_string_json += ",#{coordinate.elevation}"
         end
         temporary_string_json += ']'
       end
@@ -114,47 +116,47 @@ def initialize(name, things)
   @name = name
   @features = things
 end
-  def add_feature(f)
-    @features.append(f)
+  def add_feature(feature)
+    @features.append(feature)
   end
 
   def to_geojson(indent=0)#ruby can do json
     # Write stuff
-    s = '{"type": "FeatureCollection","features": ['
-    @features.each_with_index do |f,i|
+    json = '{"type": "FeatureCollection","features": ['
+    @features.each_with_index do |feature,i|
       if i != 0
-        s +=","
+        json +=","
       end
-        if f.class == Track #did in exersion 9
-            s += f.get_track_json
-        elsif f.class == Waypoint
-            s += f.get_waypoint_json
+        if feature.class == Track #did in exersion 9
+            json += feature.get_track_json
+        elsif feature.class == Waypoint
+            json += feature.get_waypoint_json
       end
     end
-    s + "]}"
+    json + "]}"
   end
 end
 
 def main()
-  w = Waypoint.new(-121.5, 45.5, 30, "home", "flag")
-  w2 = Waypoint.new(-121.5, 45.6, nil, "store", "dot")
-  ts1 = [
+  waypoint = Waypoint.new(-121.5, 45.5, 30, "home", "flag")
+  waypoint2 = Waypoint.new(-121.5, 45.6, nil, "store", "dot")
+  temporary_string1 = [
   Point.new(-122, 45),
   Point.new(-122, 46),
   Point.new(-121, 46),
   ]
 
-  ts2 = [ Point.new(-121, 45), Point.new(-121, 46), ]
+  temporary_string2 = [ Point.new(-121, 45), Point.new(-121, 46), ]
 
-  ts3 = [
+  temporary_string3 = [
     Point.new(-121, 45.5),
     Point.new(-122, 45.5),
   ]
 
-  t = Track.new([ts1, ts2], "track 1")
-  t2 = Track.new([ts3], "track 2")
+  track = Track.new([temporary_string1, temporary_string2], "track 1")
+  track2 = Track.new([temporary_string3], "track 2")
 
-  world = World.new("My Data", [w, w2, t, t2])
+  world = World.new("My Data", [waypoint, waypoint2, track, track2])
 
   puts world.to_geojson()
 end
