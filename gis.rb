@@ -4,6 +4,7 @@ require 'json'
 
 
 class Track
+  
   def initialize(segments, name=nil)
     @name = name
     segment_objects = []
@@ -16,6 +17,8 @@ class Track
 
 
   def get_track_json()
+
+
     coordinates_input = []
     @segments.each do |segment| 
       coordinates_input_sub = []
@@ -40,12 +43,17 @@ class Track
         coordinates: coordinates_input
       }
     }
+
     JSON.generate(track_json)
+
   end
+
 end
   
 class TrackSegment
+
   attr_reader :coordinates
+
   def initialize(coordinates)
     @coordinates = coordinates
   end
@@ -61,6 +69,7 @@ class Point
     @latitude = latitude
     @elevation = elevation
   end
+
 end
 
 
@@ -102,15 +111,20 @@ attr_reader :latitude, :longitude, :elevation, :name, :type
 end
 
 class World
-def initialize(name, things)
-  @name = name
-  @features = things
-end
+
+  def initialize(name, things)
+    @name = name
+    @features = things
+  end
+
+
   def add_feature(feature)
     @features.append(feature)
   end
 
+
   def to_geojson(indent=0)
+
     feature_get_json = []
     current_array = []
     @features.each_with_index do |feature,i|
@@ -130,9 +144,9 @@ end
     
   end
 
-
-
 end
+
+
 
 def main()
   waypoint = Waypoint.new(-121.5, 45.5, 30, "home", "flag")
