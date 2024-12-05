@@ -77,36 +77,25 @@ attr_reader :latitude, :longitude, :elevation, :name, :type
     @type = type
   end
 
-  def get_waypoint_json(indent=0)
-    json = {
-      type: Feature,
-      geometry: {
-        type: Point,
-        coordinates: @longitude, @latitude}
-
-
-        
-    if elevation != nil
-      json += ",#{@elevation}"
-    end
-    json += ']},'
-    if name != nil or type != nil
-      json += '"properties": {'
-      if name != nil
-        json += '"title": "' + @name + '"'
-      end
-      if type != nil  # if type is not nil
-        if name != nil
-          json += ','
-        end
-        json += '"icon": "' + @type + '"'  # type is the icon
-      end
-      json += '}'
-    end
-    json += "}"
-    return json
+  def create_array(input1, input2, input3 = nil) 
+    [input1, input2, input3].compact 
   end
 
+  def get_waypoint_json(indent = 0)
+    longitude_latitude_elevation = self.create_array(longitude, latitude, elevation)
+    
+    json = {
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: longitude_latitude_elevation
+      },
+      properties: {}
+    }
+    json[:properties][:title] = @name if @name
+    json[:properties][:icon] = @type if @type
+    JSON.generate(json, indent: indent)
+  end
 
 end
 
